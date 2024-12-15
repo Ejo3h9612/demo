@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>客戶聯絡方式管理</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+    <style>
+        body {
+            background-color: #f4f4f4;
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+        }
+
+        .header {
+            background-color: red;
+            color: white;
+            text-align: center;
+            padding: 20px 0;
+            font-weight: bold;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .container {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-custom {
+            background-color: white;
+            color: black;
+            font-weight: bold;
+            border: none;
+            box-shadow: none;
+        }
+
+        .btn-custom:hover {
+            background-color: #f0f0f0;
+        }
+
+        h2 {
+            color: black;
+            font-weight: bold;
+        }
+
+        table thead {
+            background-color: #0d5291;
+            color: white;
+        }
+
+        table thead th {
+            font-weight: bold;
+        }
+
+        a {
+            color: #0d5291;
+            text-decoration: none;
+        }
+
+        a:hover {
+            color: #093d6b;
+        }
+
+        .modal-header {
+            background-color: red;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>客戶聯絡方式管理頁面</h1>
+    </div>
+
+    <div class="container mt-4">
+        <h2>聯絡方式 - 客戶 ID: <span id="customer-id"></span></h2>
+    
+        <div class="d-flex justify-content-between align-items-center mb-4">
+                <button id="goToTag" class="btn btn-custom">標籤管理</button>
+                <button id="backToIndex" class="btn btn-custom">回到首頁</button>
+        </div>
+
+        <table id="contact-table" class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>聯絡類別</th>
+                    <th>內容</th>
+                    <th>是否是主要聯絡方式</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="contact-list">
+                <!-- 會通過 JavaScript 動態插入資料 -->
+            </tbody>
+        </table>
+
+        <button class="btn btn-custom" id="add-contact-btn">新增聯絡方式</button>
+    </div>
+
+    <!-- 編輯聯絡方式 Modal -->
+    <div class="modal" id="editModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">聯絡方式</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="edit-form">
+                        <input type="hidden" id="contact-id">
+                        <div class="form-group">
+                            <label for="method-type">聯絡類別</label>
+                            <input type="text" class="form-control" id="method-type" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="detail">內容</label>
+                            <input type="text" class="form-control" id="detail" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="is-primary">是否是主要聯絡方式</label>
+                            <input type="checkbox" id="is-primary">
+                        </div>
+                        <button type="submit" class="btn btn-custom">儲存</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        const customerId = new URLSearchParams(window.location.search).get("customerId");
+        document.getElementById('customer-id').innerText = customerId;
+
+        $(document).ready(function() {
+            loadContacts(customerId);
+            $('#add-contact-btn').click(function() {
+                showEditModal(null);
+            });
+        });
+
+        function loadContacts(customerId) {
+            $.get(`/api/contactMethod/customer/${customerId}`, function(data) {
+                const contactList = $('#contact-list');
+                contactList.empty();
+
+                data.forEach(contact => {
+                    const row = `<tr>
+                        <td>${contact.methodType}</td>
+                        <td>${contact.detail}</td>
+                        <td>${contact.isPrimary ? 'Yes' : 'No'}</td>
+                        <td>
+                            <button class="btn btn-warning" onclick="showEditModal(${contact.methodId})">Edit</button>
+                            <button class="btn btn-danger" onclick="deleteContact(${contact.methodId})">Delete</button>
+                        </td>
+                    </tr>`;
+                    contactList.append(row);
+                });
+            });
+        }
+
+        function showEditModal(contactId) {
+            if (contactId) {
+                $.get(`/api/contactMethod/${contactId}`, function(contact) {
+                    $('#contact-id').val(contact.methodId);
+                    $('#method-type').val(contact.methodType);
+                    $('#detail').val(contact.detail);
+                    $('#is-primary').prop('checked', contact.isPrimary);
+                    $('#editModal').modal('show');
+                });
+            } else {
+                $('#edit-form')[0].reset();
+                $('#editModal').modal('show');
+            }
+        }
+
+        $('#edit-form').submit(function(e) {
+            e.preventDefault();
+            const methodId = $('#contact-id').val();
+            const methodType = $('#method-type').val();
+            const detail = $('#detail').val();
+            const isPrimary = $('#is-primary').prop('checked');
+            const methodData = { methodType, detail, isPrimary };
+
+            if (methodId) {
+                $.ajax({
+                    url: `/api/contactMethod/${methodId}`,
+                    type: 'PUT',
+                    contentType: 'application/json',
+                    data: JSON.stringify(methodData),
+                    success: function() {
+                        $('#editModal').modal('hide');
+                        loadContacts(customerId);
+                    }
+                });
+            } else {
+                $.ajax({
+                    url: '/api/contactMethod',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ ...methodData, customerId }),
+                    success: function() {
+                        $('#editModal').modal('hide');
+                        loadContacts(customerId);
+                    }
+                });
+            }
+        });
+
+        function deleteContact(contactId) {
+            if (confirm('Are you sure you want to delete this contact?')) {
+                $.ajax({
+                    url: `/api/contactMethod/${contactId}`,
+                    type: 'DELETE',
+                    success: function() {
+                        loadContacts(customerId);
+                    }
+                });
+            }
+        }
+
+        document.getElementById('backToIndex').addEventListener('click', function () {
+            window.location.href = '/index';
+        });
+
+        document.getElementById('goToTag').addEventListener('click', function () {
+            window.location.href = `/redirect-to-tags?customerId=${encodeURIComponent(customerId)}`;
+        });
+    </script>
+</body>
+
+</html>

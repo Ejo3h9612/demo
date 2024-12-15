@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>客戶標籤管理</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f4f4f4;
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+        }
+
+        .header {
+            background-color: red;
+            color: white;
+            text-align: center;
+            padding: 20px 0;
+            font-weight: bold;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .container {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-custom {
+            background-color: white;
+            color: black;
+            font-weight: bold;
+            border: none;
+            box-shadow: none;
+        }
+
+        .btn-custom:hover {
+            background-color: #f0f0f0;
+        }
+
+        h2 {
+            color: black;
+            font-weight: bold;
+        }
+
+        table thead {
+            background-color: #0d5291;
+            color: white;
+        }
+
+        table thead th {
+            font-weight: bold;
+        }
+
+        a {
+            color: #0d5291;
+            text-decoration: none;
+        }
+
+        a:hover {
+            color: #093d6b;
+        }
+
+        .modal-header {
+            background-color: red;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>客戶標籤管理頁面</h1>
+    </div>
+
+    <div class="container mt-4">
+        <h2>聯絡方式 - 客戶 ID: <span id="customer-id"></span></h2>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <button id="goToCustomerInfo" class="btn btn-custom">客戶資料</button>
+            <button id="backToIndex" class="btn btn-custom">回到首頁</button>
+        </div>
+
+        <!-- 表格顯示聯絡方式 -->
+        <table id="contact-table" class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>標籤名稱</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="contact-list">
+                <!-- 會通過 JavaScript 動態插入資料 -->
+            </tbody>
+        </table>
+
+        <!-- 新增聯絡方式按鈕 -->
+        <button class="btn btn-custom" id="add-contact-btn">新增標籤</button>
+    </div>
+
+    <!-- 編輯聯絡方式 Modal -->
+    <div class="modal" id="editModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">標籤</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="edit-form">
+                        <input type="hidden" id="contact-id">
+                        <div class="form-group">
+                            <label for="tagName">標籤名稱</label>
+                            <input type="text" class="form-control" id="tagName" placeholder="輸入標籤名稱" required>
+                        </div>
+                        <button type="submit" class="btn btn-custom">儲存</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        // 設定 customerId 從 URL 取得
+        const customerId = new URLSearchParams(window.location.search).get("customerId");
+        document.getElementById('customer-id').innerText = customerId;
+
+        // 當頁面加載時，載入聯絡方式
+        $(document).ready(function() {
+            loadContacts(customerId);
+
+            // 新增聯絡方式按鈕
+            $('#add-contact-btn').click(function() {
+                showEditModal(null); // 顯示編輯頁面以新增聯絡方式
+            });
+        });
+
+        // 載入聯絡方式資料
+        function loadContacts(customerId) {
+            $.get(`/api/customerTags/customer/${customerId}`, function(data) {
+                const contactList = $('#contact-list');
+                contactList.empty();
+
+                data.forEach(contact => {
+                    const row = `<tr>
+                        <td>${contact.tagName}</td>
+                        <td>
+                            <button class="btn btn-warning" onclick="showEditModal(${contact.tagId})">編輯</button>
+                            <button class="btn btn-danger" onclick="deleteContact(${contact.tagId})">刪除</button>
+                        </td>
+                    </tr>`;
+                    contactList.append(row);
+                });
+            });
+        }
+
+        // 顯示編輯或新增聯絡方式的 Modal
+        function showEditModal(contactId) {
+            if (contactId) {
+                // 如果有 contactId，則為編輯模式，載入該聯絡方式資料
+                $.get(`/api/customerTags/${contactId}`, function(contact) {
+                    $('#contact-id').val(contact.methodId);
+                    $('#tagName').val(contact.tagName);
+                    $('#editModal').modal('show');
+                });
+            } else {
+                // 如果沒有 contactId，則為新增模式，清空表單
+                $('#edit-form')[0].reset();
+                $('#editModal').modal('show');
+            }
+        }
+
+        // 儲存編輯或新增聯絡方式
+        $('#edit-form').submit(function(e) {
+            e.preventDefault();
+            const methodId = $('#contact-id').val();
+            const tagName = $('#tagName').val();
+
+            const methodData = { tagName };
+
+            if (methodId) {
+                // 更新聯絡方式
+                $.ajax({
+                    url: `/api/customerTags/${methodId}`,
+                    type: 'PUT',
+                    contentType: 'application/json',
+                    data: JSON.stringify(methodData),
+                    success: function() {
+                        $('#editModal').modal('hide');
+                        loadContacts(customerId); // 更新聯絡方式列表
+                    }
+                });
+            } else {
+                // 新增聯絡方式
+                $.ajax({
+                    url: '/api/customerTags',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ ...methodData, customerId }),
+                    success: function() {
+                        $('#editModal').modal('hide');
+                        loadContacts(customerId); // 更新聯絡方式列表
+                    }
+                });
+            }
+        });
+
+        // 刪除聯絡方式
+        function deleteContact(contactId) {
+            if (confirm('確定要刪除這個聯絡方式嗎？')) {
+                $.ajax({
+                    url: `/api/customerTags/${contactId}`,
+                    type: 'DELETE',
+                    success: function() {
+                        loadContacts(customerId); // 更新聯絡方式列表
+                    }
+                });
+            }
+        }
+
+        // 導向至首頁
+        document.getElementById('backToIndex').addEventListener('click', function () {
+            window.location.href = '/index';
+        });
+
+        // 導向至客戶資料頁面
+        document.getElementById('goToCustomerInfo').addEventListener('click', function () {
+            window.location.href = `/redirect-to-contacts?customerId=${encodeURIComponent(customerId)}`;
+        });
+    </script>
+</body>
+
+</html>
