@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.entity.ContactMethodsEntity;
+import com.example.demo.request.ContactMethodsRequest;
 import com.example.demo.service.ContactMethodService;
 
 @RestController
@@ -37,17 +38,17 @@ public class ContactMethodController {
 
     // 新增聯絡方式
     @PostMapping
-    public ResponseEntity<ContactMethodsEntity> addContactMethod(@RequestBody ContactMethodsEntity contactMethodsEntity) {
-        return contactMethodService.addContactMethod(contactMethodsEntity);
+    public ResponseEntity<ContactMethodsEntity> addContactMethod(@RequestBody ContactMethodsRequest contactMethodsRequest) {
+        return contactMethodService.addContactMethod(contactMethodsRequest);
     }
 
     // 更新聯絡方式
     @PutMapping("/{methodId}")
     public ResponseEntity<ContactMethodsEntity> updateContactMethod(
             @PathVariable int methodId, 
-            @RequestBody ContactMethodsEntity contactMethodsEntity) {
+            @RequestBody ContactMethodsRequest contactMethodsRequest) {
 
-        return contactMethodService.updateContactMethod(methodId, contactMethodsEntity);
+        return contactMethodService.updateContactMethod(methodId, contactMethodsRequest);
     }
 
     // 刪除聯絡方式

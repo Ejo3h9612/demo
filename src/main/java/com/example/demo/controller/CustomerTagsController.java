@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.entity.CustomerTagsEntity;
+import com.example.demo.request.CustomerTagsRequest;
 import com.example.demo.service.CustomerTagsService;
 
 @RestController
@@ -37,17 +38,17 @@ public class CustomerTagsController {
 
     // 新增標籤
     @PostMapping
-    public ResponseEntity<CustomerTagsEntity> addCustomerTag(@RequestBody CustomerTagsEntity customerTagsEntity) {
-        return customerTagsService.addCustomerTag(customerTagsEntity);
+    public ResponseEntity<CustomerTagsEntity> addCustomerTag(@RequestBody CustomerTagsRequest customerTagsRequest) {
+        return customerTagsService.addCustomerTag(customerTagsRequest);
     }
 
     // 更新標籤
     @PutMapping("/{methodId}")
     public ResponseEntity<CustomerTagsEntity> updateCustomerTag(
             @PathVariable int methodId, 
-            @RequestBody CustomerTagsEntity customerTagsEntity) {
+            @RequestBody CustomerTagsRequest customerTagsRequest) {
 
-        return customerTagsService.updateCustomerTag(methodId, customerTagsEntity);
+        return customerTagsService.updateCustomerTag(methodId, customerTagsRequest);
     }
 
     // 刪除標籤

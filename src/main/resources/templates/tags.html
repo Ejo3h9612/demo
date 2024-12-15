@@ -171,12 +171,12 @@
             if (contactId) {
                 // 如果有 contactId，則為編輯模式，載入該聯絡方式資料
                 $.get(`/api/customerTags/${contactId}`, function(contact) {
-                    $('#contact-id').val(contact.methodId);
+                    $('#contact-id').val(contact.tagId);
                     $('#tagName').val(contact.tagName);
                     $('#editModal').modal('show');
                 });
             } else {
-                // 如果沒有 contactId，則為新增模式，清空表單
+            	$('#contact-id').val('');
                 $('#edit-form')[0].reset();
                 $('#editModal').modal('show');
             }
@@ -186,8 +186,15 @@
         $('#edit-form').submit(function(e) {
             e.preventDefault();
             const methodId = $('#contact-id').val();
-            const tagName = $('#tagName').val();
+            const tagName = $('#tagName').val().trim();
 
+            console.log(methodId);
+
+            // 標籤名稱長度檢查
+            if (tagName.length > 50) {
+                alert('標籤名稱不能超過 50 個字元，請重新輸入！');
+                return;
+            }
             const methodData = { tagName };
 
             if (methodId) {

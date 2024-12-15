@@ -2,22 +2,29 @@ package com.example.demo.service.impl;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.entity.ContactMethodsEntity;
+import com.example.demo.mapper.ContactMethodsMapper;
 import com.example.demo.repository.ContactMethodsRepository;
+import com.example.demo.request.ContactMethodsRequest;
 import com.example.demo.service.ContactMethodService;
 
-@Service("ContactMethodService")
+@Service
 public class ContactMethodServiceImpl implements ContactMethodService {
 
-	@Autowired
 	private ContactMethodsRepository contactMethodsRepository;
 
-	@Override
+    private ContactMethodsMapper contactMethodsMapper;
+	
+    ContactMethodServiceImpl(ContactMethodsRepository contactMethodsRepository, ContactMethodsMapper contactMethodsMapper) {
+    	this.contactMethodsRepository = contactMethodsRepository;
+    	this.contactMethodsMapper = contactMethodsMapper;
+    }
+    
+ 	@Override
 	public List<ContactMethodsEntity> getContactMethodsByCustomerId(int methodId) {
 		return contactMethodsRepository.findByCustomerId(methodId);
 	}
@@ -31,7 +38,8 @@ public class ContactMethodServiceImpl implements ContactMethodService {
 	}
 
 	@Override
-	public ResponseEntity<ContactMethodsEntity> addContactMethod(ContactMethodsEntity contactMethodsEntity) {
+	public ResponseEntity<ContactMethodsEntity> addContactMethod(ContactMethodsRequest contactMethodsRequest) {
+		ContactMethodsEntity contactMethodsEntity = contactMethodsMapper.toEntity(contactMethodsRequest);
 		if (contactMethodsEntity.getCustomerId() <= 0) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST); // 必須提供有效的 customerId
         }
@@ -41,7 +49,9 @@ public class ContactMethodServiceImpl implements ContactMethodService {
 	}
 
 	@Override
-	public ResponseEntity<ContactMethodsEntity> updateContactMethod(int methodId, ContactMethodsEntity contactMethodsEntity) {
+	public ResponseEntity<ContactMethodsEntity> updateContactMethod(int methodId, ContactMethodsRequest contactMethodsRequest) {
+		ContactMethodsEntity contactMethodsEntity = contactMethodsMapper.toEntity(contactMethodsRequest);
+
 		return contactMethodsRepository.findById(methodId)
                 .map(existingContact -> {
                     existingContact.setMethodType(contactMethodsEntity.getMethodType());

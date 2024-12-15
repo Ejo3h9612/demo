@@ -8,7 +8,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.entity.CustomerTagsEntity;
+import com.example.demo.mapper.CustomerTagsMapper;
 import com.example.demo.repository.CustomerTagsRepository;
+import com.example.demo.request.CustomerTagsRequest;
 import com.example.demo.service.CustomerTagsService;
 
 @Service("CustomerTagsService")
@@ -17,6 +19,9 @@ public class CustomerTagsServiceImpl implements CustomerTagsService {
 	@Autowired
 	private CustomerTagsRepository customerTagsRepository;
 
+	@Autowired
+	private CustomerTagsMapper customerTagsMapper;
+	
 	@Override
 	public List<CustomerTagsEntity> getCustomerTagsByCustomerId(int tagid) {
 		return customerTagsRepository.findByCustomerId(tagid);
@@ -31,7 +36,9 @@ public class CustomerTagsServiceImpl implements CustomerTagsService {
 	}
 
 	@Override
-	public ResponseEntity<CustomerTagsEntity> addCustomerTag(CustomerTagsEntity customerTagsEntity) {
+	public ResponseEntity<CustomerTagsEntity> addCustomerTag(CustomerTagsRequest customerTagsRequest) {
+		CustomerTagsEntity customerTagsEntity = customerTagsMapper.toEntity(customerTagsRequest);
+		
 		if (customerTagsEntity.getCustomerId() <= 0) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST); // 必須提供有效的 customerId
         }
@@ -41,7 +48,10 @@ public class CustomerTagsServiceImpl implements CustomerTagsService {
 	}
 
 	@Override
-	public ResponseEntity<CustomerTagsEntity> updateCustomerTag(int tagid, CustomerTagsEntity customerTagsEntity) {
+	public ResponseEntity<CustomerTagsEntity> updateCustomerTag(int tagid, CustomerTagsRequest customerTagsRequest) {
+		
+		CustomerTagsEntity customerTagsEntity = customerTagsMapper.toEntity(customerTagsRequest);
+
 		return customerTagsRepository.findById(tagid)
                 .map(existingContact -> {
                     existingContact.setTagName(customerTagsEntity.getTagName());

@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.entity.CustomerTagsEntity;
+import com.example.demo.request.CustomerTagsRequest;
 
 @Service("CustomerTagsService")
 public interface CustomerTagsService {
@@ -14,9 +15,9 @@ public interface CustomerTagsService {
 
 	ResponseEntity<CustomerTagsEntity> getCustomerTag(int tagid);
 
-	ResponseEntity<CustomerTagsEntity> addCustomerTag(CustomerTagsEntity customerTagsEntity);
+	ResponseEntity<CustomerTagsEntity> addCustomerTag(CustomerTagsRequest customerTagsRequest);
 	
-	ResponseEntity<CustomerTagsEntity> updateCustomerTag(int tagid, CustomerTagsEntity customerTagsEntity);
+	ResponseEntity<CustomerTagsEntity> updateCustomerTag(int tagid, CustomerTagsRequest customerTagsRequest);
 	
 	ResponseEntity<Void> deleteCustomerTag(int tagid);
 }
