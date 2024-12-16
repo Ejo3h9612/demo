@@ -107,7 +107,7 @@
         <button class="btn btn-custom" id="add-contact-btn">新增聯絡方式</button>
     </div>
 
-    <!-- 編輯聯絡方式 Modal -->
+    <!-- 編輯聯絡方式  -->
     <div class="modal" id="editModal" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -121,9 +121,15 @@
                     <form id="edit-form">
                         <input type="hidden" id="contact-id">
                         <div class="form-group">
-                            <label for="method-type"><span style="color: red;">*</span>聯絡類別</label>
-                            <input type="text" class="form-control" id="method-type" required>
-                        </div>
+						    <label for="method-type"><span style="color: red;">*</span>聯絡類別</label>
+						    <select class="form-control" id="method-type" required>
+						        <option value="">請選擇</option>
+						        <option value="信箱">信箱</option>
+						        <option value="電話">電話</option>
+						        <option value="地址">地址</option>
+						        <option value="其他">其他</option>
+						    </select>
+						</div>
                         <div class="form-group">
                             <label for="detail">內容</label>
                             <input type="text" class="form-control" id="detail" required>
@@ -156,12 +162,13 @@
             $.get(`/api/contactMethod/customer/${customerId}`, function(data) {
                 const contactList = $('#contact-list');
                 contactList.empty();
-
+				
                 data.forEach(contact => {
+                	console.log(contact);
                     const row = `<tr>
                         <td>${contact.methodType}</td>
                         <td>${contact.detail}</td>
-                        <td>${contact.isPrimary ? 'Yes' : 'No'}</td>
+                        <td>${contact.primary ? '是' : '否'}</td>
                         <td>
                             <button class="btn btn-warning" onclick="showEditModal(${contact.methodId})">編輯</button>
                             <button class="btn btn-danger" onclick="deleteContact(${contact.methodId})">刪除</button>
@@ -193,16 +200,36 @@
             const methodId = $('#contact-id').val();
             const methodType = $('#method-type').val();
             const detail = $('#detail').val();
-            const isPrimary = $('#is-primary').prop('checked');
-            const methodData = { methodType, detail, isPrimary };
-
+            const primary = $('#is-primary').prop('checked');
+            
+            const methodData = { methodType, detail, primary };
+            
          	// methodType檢查
-            if (methodType==null || methodType.length == 0) {
-                alert('聯絡類別為必須輸入，請重新輸入！');
-                return;
-            }
+            // 驗證聯絡類別是否選擇
+		    if (!methodType) {
+		        alert('請選擇聯絡類別！');
+		        return;
+		    }
+		
+		    // 根據聯絡類別進行不同驗證
+		    if (methodType === '信箱') {
+		        // 驗證信箱格式
+		        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+		        if (!emailRegex.test(detail)) {
+		            alert('請輸入有效的信箱地址！');
+		            return;
+		        }
+		    } else if (methodType === '電話') {
+		        // 驗證電話格式（僅允許數字，至少 8 位）
+		        const phoneRegex = /^[0-9]{8,}$/;
+		        if (!phoneRegex.test(detail)) {
+		            alert('請輸入有效的電話號碼（至少 8 位數字）！');
+		            return;
+		        }
+		    }
             
             if (methodId) {
+            	// 更新聯絡方式
                 $.ajax({
                     url: `/api/contactMethod/${methodId}`,
                     type: 'PUT',
@@ -214,6 +241,7 @@
                     }
                 });
             } else {
+            	// 新增聯絡方式
                 $.ajax({
                     url: '/api/contactMethod',
                     type: 'POST',
@@ -227,8 +255,9 @@
             }
         });
 
+     	// 刪除聯絡方式
         function deleteContact(contactId) {
-            if (confirm('Are you sure you want to delete this contact?')) {
+            if (confirm('您確認要刪除這筆聯絡方式?')) {
                 $.ajax({
                     url: `/api/contactMethod/${contactId}`,
                     type: 'DELETE',

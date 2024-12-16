@@ -39,9 +39,10 @@ public class ContactMethodServiceImpl implements ContactMethodService {
 
 	@Override
 	public ResponseEntity<ContactMethodsEntity> addContactMethod(ContactMethodsRequest contactMethodsRequest) {
+		
 		ContactMethodsEntity contactMethodsEntity = contactMethodsMapper.toEntity(contactMethodsRequest);
 		if (contactMethodsEntity.getCustomerId() <= 0) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST); // 必須提供有效的 customerId
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         
         ContactMethodsEntity savedContactMethod = contactMethodsRepository.save(contactMethodsEntity);
@@ -50,6 +51,7 @@ public class ContactMethodServiceImpl implements ContactMethodService {
 
 	@Override
 	public ResponseEntity<ContactMethodsEntity> updateContactMethod(int methodId, ContactMethodsRequest contactMethodsRequest) {
+		
 		ContactMethodsEntity contactMethodsEntity = contactMethodsMapper.toEntity(contactMethodsRequest);
 
 		return contactMethodsRepository.findById(methodId)

@@ -40,7 +40,7 @@ public class CustomerTagsServiceImpl implements CustomerTagsService {
 		CustomerTagsEntity customerTagsEntity = customerTagsMapper.toEntity(customerTagsRequest);
 		
 		if (customerTagsEntity.getCustomerId() <= 0) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST); // 必須提供有效的 customerId
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         
 		CustomerTagsEntity savedContactMethod = customerTagsRepository.save(customerTagsEntity);

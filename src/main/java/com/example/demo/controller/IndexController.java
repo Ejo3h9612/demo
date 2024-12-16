@@ -25,7 +25,7 @@ public class IndexController {
 
 		List<CustomerDetailsDTO> customers = customerInfoService.findCustomerDetails();
 
-		model.addAttribute("customers", customers); // 將數據加入模型
+		model.addAttribute("customers", customers);
 		
 		return "index.html";
 	}

@@ -55,9 +55,9 @@
         }
 
         table thead {
-		    background-color: #007bff !important;
-		    color: white !important;
-		}
+            background-color: #007bff !important;
+            color: white !important;
+        }
 
         table thead th {
             font-weight: bold;
@@ -89,35 +89,50 @@
 
         <div class="d-flex justify-content-between align-items-center">
             <button class="btn btn-refresh" onclick="location.reload()">刷新列表</button>
+            <input type="text" id="search-input" class="form-control w-50" placeholder="搜尋客戶...">
         </div>
 
         <table id="customer-table" class="table table-bordered">
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>稅ID</th>
+                    <th>TAXID</th>
                     <th>姓名</th>
                     <th>標籤</th>
                 </tr>
             </thead>
             <tbody>
-                <!-- Thymeleaf 用法開始 -->
                 <tr th:each="customer : ${customers}">
                     <td>
-                        <a th:href="@{/redirect-to-contacts(customerId=${customer.customerId})}" 
-                           th:text="${customer.customerId}"></a>
+                        <a th:href="@{/redirect-to-contacts(customerId=${customer.customerId})}"
+                            th:text="${customer.customerId}"></a>
                     </td>
                     <td th:text="${customer.customerTaxId}"></td>
                     <td th:text="${customer.customerName}"></td>
                     <td th:text="${customer.tagName}"></td>
                 </tr>
-                <!-- Thymeleaf 用法結束 -->
             </tbody>
         </table>
     </div>
 
     <!-- 引入 Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('search-input').addEventListener('input', function () {
+            const searchValue = this.value.toLowerCase(); // 獲取輸入的關鍵字並轉換為小寫
+            const rows = document.querySelectorAll('#customer-table tbody tr'); // 獲取所有表格行
+
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td'); // 獲取每一行的所有單元格
+                const rowText = Array.from(cells).map(cell => cell.textContent.toLowerCase()).join(' '); // 合併每行的文字內容
+                if (rowText.includes(searchValue)) {
+                    row.style.display = ''; // 顯示符合條件的行
+                } else {
+                    row.style.display = 'none'; // 隱藏不符合條件的行
+                }
+            });
+        });
+    </script>
 </body>
 
 </html>
